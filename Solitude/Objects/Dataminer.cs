@@ -33,9 +33,9 @@ public class Dataminer
     {
         _chunks = new("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV4/");
         _backup = backupPath;
-        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_0));
+        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_2));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
-        _provider.Versions = new VersionContainer(EGame.GAME_UE5_0, ver: new(522, 1006));
+        _provider.Versions = new VersionContainer(EGame.GAME_UE5_2, ver: new(522, 1008));
     }
 
     public async Task InstallDependenciesAsync(RestResponse manifestResponse)
