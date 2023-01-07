@@ -33,7 +33,7 @@ public static class MappingsManager
 
         using var client = new RestClient();
 
-        var request = new RestRequest("https://fortnitecentral.gmatrixgames.ga/api/v1/mappings", Method.Get)
+        var request = new RestRequest("https://fortnitecentral.genxgames.gg/api/v1/mappings", Method.Get)
         {
             Timeout = 3000
         };
