@@ -8,7 +8,7 @@ using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using CUE4Parse.UE4.Vfs;
+using CUE4Parse.UE4.VirtualFileSystem;
 using CUE4Parse_Conversion.Textures;
 using GenericReader;
 using K4os.Compression.LZ4.Streams;

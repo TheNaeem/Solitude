@@ -28,6 +28,7 @@
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="Spectre.Console" Version="0.45.1-preview.0.28" />
     <PackageReference Include="Zstandard.Net" Version="1.1.7" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
   </ItemGroup>
 
   <ItemGroup>
