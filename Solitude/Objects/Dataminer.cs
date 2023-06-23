@@ -35,7 +35,7 @@ public class Dataminer
         _backup = backupPath;
         _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_2));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
-        _provider.Versions = new VersionContainer(EGame.GAME_UE5_2, ver: new(522, 1008));
+        _provider.Versions = new VersionContainer(EGame.GAME_UE5_LATEST);
     }
 
     public async Task InstallDependenciesAsync(RestResponse manifestResponse)
@@ -164,6 +164,7 @@ public class Dataminer
                 _provider.TryLoadObject(dav2.PathWithoutExtension, out var newDisplayAsset) &&
                 newDisplayAsset.TryGetValue<FPackageIndex[]>(out var presentations, "Presentations") &&
                 presentations.Length > 0 &&
+                presentations.FirstOrDefault() is not null &&
                 presentations.First().TryLoad(out var offerimage) &&
                 offerimage is not null &&
                 offerimage.TryGetValue<FStructFallback[]>(out var textureParams, "TextureParameterValues"))
