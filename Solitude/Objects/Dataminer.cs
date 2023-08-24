@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using CUE4Parse.FileProvider;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Exports;
@@ -33,9 +34,9 @@ public class Dataminer
     {
         _chunks = new("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV4/");
         _backup = backupPath;
-        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_2));
+        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_3));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
-        _provider.Versions = new VersionContainer(EGame.GAME_UE5_LATEST);
+        //_provider.Versions = new VersionContainer(EGame.GAME_UE5_LATEST);
     }
 
     public async Task InstallDependenciesAsync(RestResponse manifestResponse)
@@ -138,48 +139,7 @@ public class Dataminer
 
     private UTexture2D GetIconForCosmetic(UObject cosmetic, IEnumerable<VfsEntry>? offerImages)
     {
-        if (cosmetic.ExportType == "AthenaCharacterItemDefinition")
-        {
-            var idSplit = cosmetic.Name.Split('_');
-            VfsEntry? dav2 = null;
-
-            var name = cosmetic.Name.ToLower();
-
-            if (name.StartsWith("character_"))
-            {
-                dav2 = offerImages?.FirstOrDefault(x => x.NameWithoutExtension.ToLower().Contains(name));
-            }
-            else if (name.StartsWith("cid_a_"))
-            {
-                string idNum = $"{idSplit[0]}_{idSplit[1]}_{idSplit[2]}".ToLower();
-                dav2 = offerImages?.FirstOrDefault(x => x.NameWithoutExtension.ToLower().Contains(idNum));
-            }
-            else
-            {
-                string idNum = $"{idSplit[0]}_{idSplit[1]}".ToLower();
-                dav2 = offerImages?.FirstOrDefault(x => x.NameWithoutExtension.ToLower().Contains(idNum));
-            }
-
-            if (dav2 is not null &&
-                _provider.TryLoadObject(dav2.PathWithoutExtension, out var newDisplayAsset) &&
-                newDisplayAsset.TryGetValue<FPackageIndex[]>(out var presentations, "Presentations") &&
-                presentations.Length > 0 &&
-                presentations.FirstOrDefault() is not null &&
-                presentations.First().TryLoad(out var offerimage) &&
-                offerimage is not null &&
-                offerimage.TryGetValue<FStructFallback[]>(out var textureParams, "TextureParameterValues"))
-            {
-                var offerImageParam = textureParams.FirstOrDefault(x => x.GetOrDefault<FStructFallback>("ParameterInfo").GetOrDefault<FName>("Name").Text == "OfferImage");
-
-                if (offerImageParam is not null &&
-                    offerImageParam.TryGetValue<FPackageIndex>(out var texturePtr, "ParameterValue") &&
-                    texturePtr.TryLoad<UTexture2D>(out var textureIcon))
-                {
-                    return textureIcon;
-                }
-            }
-        }
-        else if (cosmetic.ExportType == "AthenaPickaxeItemDefinition" &&
+        if (cosmetic.ExportType == "AthenaPickaxeItemDefinition" &&
             cosmetic.TryGetValue(out FPackageIndex pickaxePtr, "WeaponDefinition") &&
             pickaxePtr.TryLoad(out var wid) &&
             wid is not null &&
@@ -208,6 +168,26 @@ public class Dataminer
         }
 
         return _provider.LoadObject<UTexture2D>("FortniteGame/Content/Athena/Prototype/Textures/T_Placeholder_Item_Outfit");
+    }
+
+    private static bool TryGetIconFromFile(UObject cosmetic, [NotNullWhen(true)] out SKBitmap? outIcon)
+    {
+        outIcon = null;
+
+        if (cosmetic.ExportType != "AthenaCharacterItemDefinition")
+            return false;
+
+        var fileName = cosmetic.Name.Replace('_', '-');
+        var iconFilePath = Path.Combine(DirectoryManager.OutfitsDir, $"T-AthenaSoldiers-{fileName}.png");
+
+        if (!File.Exists(iconFilePath))
+        {
+            return false;
+        }
+
+        outIcon = SKBitmap.Decode(iconFilePath);
+
+        return true;
     }
 
     public void RunCosmetics()
@@ -252,7 +232,11 @@ public class Dataminer
             }
             else icon.DrawRarityBackground("Unattainable");
 
-            icon.DrawTexture(GetIconForCosmetic(cosmetic, offerImages), 0, 0, cosmeticIconInfo);
+            if (TryGetIconFromFile(cosmetic, out var cosmeticIcon))
+            {
+                icon.DrawAndResizeImage(cosmeticIcon, 0, 0, cosmeticIconInfo);
+            }
+            else icon.DrawTexture(GetIconForCosmetic(cosmetic, offerImages), 0, 0, cosmeticIconInfo);
 
             if (cosmetic.TryGetValue<FText>(out var displayName, "DisplayName"))
             {
@@ -309,4 +293,6 @@ public class Dataminer
 
         // the rest? do it yourself ;)
     }
+
+
 }
