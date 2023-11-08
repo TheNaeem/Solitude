@@ -36,13 +36,13 @@ public class ChunkDownloader
             var versions = provider.Versions;
 
             // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L196
-            provider.Initialize(file.Name, new Stream[] { file.GetStream() },
+            provider.RegisterVfs(file.Name, new Stream[] { file.GetStream() },
                 it => new FStreamArchive(it, Manifest.FileManifests.First(x => x.Name.Equals(it)).GetStream(), versions));
         }
         else
         {
             using var pakStream = file.GetStream();
-            provider.Initialize(file.Name, new[] { pakStream });
+            provider.RegisterVfs(file.Name, new[] { pakStream });
         }
 
         var ms = sw.ElapsedMilliseconds;
