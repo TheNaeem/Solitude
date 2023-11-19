@@ -5,6 +5,10 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solitude", "Solitude\Solitude.csproj", "{819A19F1-576C-43B8-A70D-B44798413BBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CUE4Parse", "CUE4Parse\CUE4Parse\CUE4Parse.csproj", "{1A53408D-98BB-4FD9-9959-B19280817DA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CUE4Parse-Conversion", "CUE4Parse\CUE4Parse-Conversion\CUE4Parse-Conversion.csproj", "{2209F1F7-635B-4100-B168-0C514E41DF0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{819A19F1-576C-43B8-A70D-B44798413BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{819A19F1-576C-43B8-A70D-B44798413BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{819A19F1-576C-43B8-A70D-B44798413BBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A53408D-98BB-4FD9-9959-B19280817DA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A53408D-98BB-4FD9-9959-B19280817DA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A53408D-98BB-4FD9-9959-B19280817DA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A53408D-98BB-4FD9-9959-B19280817DA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2209F1F7-635B-4100-B168-0C514E41DF0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2209F1F7-635B-4100-B168-0C514E41DF0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2209F1F7-635B-4100-B168-0C514E41DF0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2209F1F7-635B-4100-B168-0C514E41DF0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
