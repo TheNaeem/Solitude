@@ -42,7 +42,7 @@ public class ChunkDownloader
         else
         {
             using var pakStream = file.GetStream();
-            provider.RegisterVfs(file.Name, new[] { pakStream });
+            provider.RegisterVfs(file.Name, new Stream[] { pakStream });
         }
 
         var ms = sw.ElapsedMilliseconds;
