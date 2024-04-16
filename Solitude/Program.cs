@@ -4,7 +4,7 @@ using Solitude.Managers;
 using Solitude.Objects;
 using Spectre.Console;
 
-var dataminer = Core.Init();
+var dataminer = Core.Init().Result;
 
 if (dataminer is null)
     return;

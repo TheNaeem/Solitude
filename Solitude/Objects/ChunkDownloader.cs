@@ -12,19 +12,14 @@ namespace Solitude.Objects;
 
 public class ChunkDownloader 
 {
-    public string ChunkBaseUrl { get; init; }
     public FBuildPatchAppManifest? Manifest { get; set; }
-    public ManifestInfoElement? InfoElement { get; set; }
+    public ManifestInfoElement? Element { get; set; }
 
     // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L53
     private static readonly Regex PakFinder = new(@"^FortniteGame(/|\\)Content(/|\\)Paks(/|\\)",
         RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     
-    public ChunkDownloader(string chunkBaseUrl)
-    {
-        ChunkBaseUrl = chunkBaseUrl;
-    }
-
+    
     private void LoadFileForProvider(FFileManifest file, ref StreamedFileProvider provider)
     {
         if (Manifest is null)
@@ -43,6 +38,14 @@ public class ChunkDownloader
             provider.RegisterVfs(file.FileName, [file.GetStream()],
                 it => new FStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
         }
+        else if (file.FileName.EndsWith(".ucas"))
+        {
+            return;
+        } 
+        else if (file.FileName.EndsWith(".sig"))
+        {
+            return;
+        } 
         else
         {
             using var pakStream = file.GetStream();
@@ -94,6 +97,6 @@ public class ChunkDownloader
             Zlibng = ZlibHelper.Instance
         };
 
-        (Manifest, InfoElement) =  await info.DownloadAndParseAsync(manifestOptions);
+        (Manifest, Element) =  await info.DownloadAndParseAsync(manifestOptions);
     }
 }

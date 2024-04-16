@@ -11,7 +11,7 @@ namespace Solitude.Managers;
 
 public static class Core
 {
-    public static Dataminer? Init()
+    public static async Task<Dataminer?> Init()
     {
         Console.Title = "Solitude";
 
@@ -40,8 +40,8 @@ public static class Core
 
         Log.Information("Selected backup file {BackupPath}", backupFile);
 
-        OodleInit();
-        ZLibInit();
+        await OodleInit();
+        await ZLibInit();
 
         if (!MappingsManager.TryGetMappings(out var mappings))
         {
@@ -119,23 +119,23 @@ public static class Core
         return ret;
     }
 
-    public static void OodleInit()
+    public static async Task OodleInit()
     {
         var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_DLL_NAME);
         if (!File.Exists(oodlePath))
         {
-            OodleHelper.DownloadOodleDll(oodlePath);
+            await OodleHelper.DownloadOodleDllAsync(oodlePath);
         }
 
         OodleHelper.Initialize(oodlePath);
     }
 
-    public static void ZLibInit()
+    public static async Task ZLibInit()
     {
         var dllPath = Path.Combine(DirectoryManager.FilesDir, ZlibHelper.DLL_NAME);
         if (!File.Exists(dllPath))
         {
-            ZlibHelper.DownloadDll(dllPath);
+            await ZlibHelper.DownloadDllAsync(dllPath);
         }
         
         ZlibHelper.Initialize(dllPath);
@@ -156,6 +156,7 @@ public static class Core
                 return;
             }
         }
+        
         else manifestResponse = endpoint.GetResponse();
         var manifestInfo = ManifestInfo.Deserialize(manifestResponse.RawBytes);
 

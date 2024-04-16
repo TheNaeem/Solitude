@@ -27,21 +27,21 @@ public class Dataminer
 {
     public ESolitudeMode Mode { get; set; }
     private StreamedFileProvider _provider;
-    private ChunkDownloader _chunks;
+    private ChunkDownloader? _chunks;
     private string _backup;
     private List<VfsEntry>? _newFiles;
 
     public Dataminer(string mappingsPath, string backupPath)
     {
-        _chunks = new("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV4/");
         _backup = backupPath;
         _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_5));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
-        //_provider.Versions = new VersionContainer(EGame.GAME_UE5_LATEST);
     }
 
     public async Task InstallDependenciesAsync(ManifestInfo manifestInfo)
     {
+        _chunks = new ChunkDownloader();
+        
         if (manifestInfo is null)
         {
             Log.Error("Manifest response content was empty.");
