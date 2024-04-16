@@ -25,7 +25,7 @@ public class ChunkDownloader
         ChunkBaseUrl = chunkBaseUrl;
     }
 
-    public void LoadFileForProvider(FFileManifest file, ref StreamedFileProvider provider)
+    private void LoadFileForProvider(FFileManifest file, ref StreamedFileProvider provider)
     {
         if (Manifest is null)
         {
@@ -40,7 +40,7 @@ public class ChunkDownloader
             var versions = provider.Versions;
 
             // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L196
-            provider.RegisterVfs(file.FileName, new Stream[] { file.GetStream() },
+            provider.RegisterVfs(file.FileName, [file.GetStream()],
                 it => new FStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
         }
         else
