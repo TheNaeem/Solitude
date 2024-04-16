@@ -11,6 +11,7 @@ using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.VirtualFileSystem;
 using CUE4Parse_Conversion.Textures;
+using EpicManifestParser.Api;
 using GenericReader;
 using K4os.Compression.LZ4.Streams;
 using RestSharp;
@@ -34,20 +35,20 @@ public class Dataminer
     {
         _chunks = new("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV4/");
         _backup = backupPath;
-        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_4));
+        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_5));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
         //_provider.Versions = new VersionContainer(EGame.GAME_UE5_LATEST);
     }
 
-    public async Task InstallDependenciesAsync(RestResponse manifestResponse)
+    public async Task InstallDependenciesAsync(ManifestInfo manifestInfo)
     {
-        if (string.IsNullOrEmpty(manifestResponse.Content))
+        if (manifestInfo is null)
         {
             Log.Error("Manifest response content was empty.");
             return;
         }
 
-        await _chunks.DownloadManifestAsync(new(manifestResponse.Content));
+        await _chunks.DownloadManifestAsync(manifestInfo);
 
         _chunks.LoadFileForProvider("FortniteGame/Content/Paks/global.utoc", ref _provider);
         _chunks.LoadFileForProvider("FortniteGame/Content/Paks/pakchunk10-WindowsClient.utoc", ref _provider); // hahahahahahahahahahahahahaha

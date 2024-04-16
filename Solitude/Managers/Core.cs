@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using CUE4Parse.Compression;
+using EpicManifestParser.Api;
 using RestSharp;
 using Solitude.Objects;
 using Solitude.Objects.Endpoints;
@@ -37,6 +39,9 @@ public static class Core
                 .AddChoices(backups));
 
         Log.Information("Selected backup file {BackupPath}", backupFile);
+
+        OodleInit();
+        ZLibInit();
 
         if (!MappingsManager.TryGetMappings(out var mappings))
         {
@@ -114,6 +119,47 @@ public static class Core
         return ret;
     }
 
+    public static void OodleInit()
+    {
+        var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_DLL_NAME);
+        if (!File.Exists(oodlePath))
+        {
+            OodleHelper.DownloadOodleDll(oodlePath);
+        }
+
+        OodleHelper.Initialize(oodlePath);
+    }
+
+    public static void ZLibInit()
+    {
+        var dllPath = Path.Combine(DirectoryManager.FilesDir, ZlibHelper.DLL_NAME);
+        if (!File.Exists(dllPath))
+        {
+            ZlibHelper.DownloadDll(dllPath);
+        }
+        
+        ZlibHelper.Initialize(dllPath);
+    }
+
+    public static async Task<ManifestInfo> GetManifestAsync()
+    {
+        AuthManager.TryCreateToken(out string? token);
+
+        var client = new RestClient();
+        var request = new RestRequest("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
+        
+        request.AddHeader("Authorization", $"bearer {token}");
+        var response = await client.ExecuteAsync(request).ConfigureAwait(false);
+        Log.Information("[{Method}] [{Status}({StatusCode})] '{Resource}'", request.Method, response.StatusDescription, (int) response.StatusCode, response.ResponseUri?.OriginalString);
+
+        return response.IsSuccessful ? ManifestInfo.Deserialize(response.RawBytes) : null;
+    }
+
+    public static ManifestInfo GetManifest()
+    {
+        return GetManifestAsync().GetAwaiter().GetResult();
+    } 
+
     public static async Task RunAsync(ESolitudeMode mode, Dataminer dataminer)
     {
         RestResponse? manifestResponse;
@@ -130,10 +176,11 @@ public static class Core
             }
         }
         else manifestResponse = endpoint.GetResponse();
+        var manifestInfo = ManifestInfo.Deserialize(manifestResponse.RawBytes);
 
         dataminer.Mode = mode;
 
-        await dataminer.InstallDependenciesAsync(manifestResponse);
+        await dataminer.InstallDependenciesAsync(manifestInfo);
         await dataminer.LoadFilesAsync();
         await dataminer.LoadNewEntriesAsync();
 
