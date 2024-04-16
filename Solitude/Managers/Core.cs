@@ -141,25 +141,6 @@ public static class Core
         ZlibHelper.Initialize(dllPath);
     }
 
-    public static async Task<ManifestInfo> GetManifestAsync()
-    {
-        AuthManager.TryCreateToken(out string? token);
-
-        var client = new RestClient();
-        var request = new RestRequest("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
-        
-        request.AddHeader("Authorization", $"bearer {token}");
-        var response = await client.ExecuteAsync(request).ConfigureAwait(false);
-        Log.Information("[{Method}] [{Status}({StatusCode})] '{Resource}'", request.Method, response.StatusDescription, (int) response.StatusCode, response.ResponseUri?.OriginalString);
-
-        return response.IsSuccessful ? ManifestInfo.Deserialize(response.RawBytes) : null;
-    }
-
-    public static ManifestInfo GetManifest()
-    {
-        return GetManifestAsync().GetAwaiter().GetResult();
-    } 
-
     public static async Task RunAsync(ESolitudeMode mode, Dataminer dataminer)
     {
         RestResponse? manifestResponse;
