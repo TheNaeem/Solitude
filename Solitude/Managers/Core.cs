@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using CUE4Parse.Compression;
+using EpicManifestParser.Api;
 using RestSharp;
 using Solitude.Objects;
 using Solitude.Objects.Endpoints;
@@ -9,7 +11,7 @@ namespace Solitude.Managers;
 
 public static class Core
 {
-    public static Dataminer? Init()
+    public static async Task<Dataminer?> Init()
     {
         Console.Title = "Solitude";
 
@@ -37,6 +39,9 @@ public static class Core
                 .AddChoices(backups));
 
         Log.Information("Selected backup file {BackupPath}", backupFile);
+
+        await OodleInit();
+        await ZLibInit();
 
         if (!MappingsManager.TryGetMappings(out var mappings))
         {
@@ -114,6 +119,28 @@ public static class Core
         return ret;
     }
 
+    public static async Task OodleInit()
+    {
+        var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_DLL_NAME);
+        if (!File.Exists(oodlePath))
+        {
+            await OodleHelper.DownloadOodleDllAsync(oodlePath);
+        }
+
+        OodleHelper.Initialize(oodlePath);
+    }
+
+    public static async Task ZLibInit()
+    {
+        var dllPath = Path.Combine(DirectoryManager.FilesDir, ZlibHelper.DLL_NAME);
+        if (!File.Exists(dllPath))
+        {
+            await ZlibHelper.DownloadDllAsync(dllPath);
+        }
+        
+        ZlibHelper.Initialize(dllPath);
+    }
+
     public static async Task RunAsync(ESolitudeMode mode, Dataminer dataminer)
     {
         RestResponse? manifestResponse;
@@ -129,11 +156,13 @@ public static class Core
                 return;
             }
         }
+        
         else manifestResponse = endpoint.GetResponse();
+        var manifestInfo = ManifestInfo.Deserialize(manifestResponse.RawBytes);
 
         dataminer.Mode = mode;
 
-        await dataminer.InstallDependenciesAsync(manifestResponse);
+        await dataminer.InstallDependenciesAsync(manifestInfo);
         await dataminer.LoadFilesAsync();
         await dataminer.LoadNewEntriesAsync();
 

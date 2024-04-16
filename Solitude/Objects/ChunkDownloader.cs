@@ -1,58 +1,65 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
+using CUE4Parse.Compression;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Readers;
-using EpicManifestParser.Objects;
+using EpicManifestParser;
+using EpicManifestParser.Api;
+using EpicManifestParser.UE;
 using Solitude.Managers;
 
 namespace Solitude.Objects;
 
 public class ChunkDownloader 
 {
-    public string ChunkBaseUrl { get; init; }
-    public Manifest? Manifest { get; private set; }
+    public FBuildPatchAppManifest? Manifest { get; set; }
+    public ManifestInfoElement? Element { get; set; }
 
     // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L53
-    private static Regex PakFinder = new(@"^FortniteGame(/|\\)Content(/|\\)Paks(/|\\)(pakchunk(?:0|10.*|20.*|\w+)-WindowsClient|global)\.(pak|utoc)$",
-       RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant); 
-
-    public ChunkDownloader(string chunkBaseUrl)
-    {
-        ChunkBaseUrl = chunkBaseUrl;
-    }
-
-    public void LoadFileForProvider(FileManifest file, ref StreamedFileProvider provider)
+    private static readonly Regex PakFinder = new(@"^FortniteGame(/|\\)Content(/|\\)Paks(/|\\)",
+        RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    
+    
+    private void LoadFileForProvider(FFileManifest file, ref StreamedFileProvider provider)
     {
         if (Manifest is null)
         {
-            Log.Error("{FileName} could not be found", file.Name);
+            Log.Error("{FileName} could not be found", file.FileName);
             return;
         }
 
         var sw = Stopwatch.StartNew();
 
-        if (file.Name.EndsWith(".utoc"))
+        if (file.FileName.EndsWith(".utoc"))
         {
             var versions = provider.Versions;
 
             // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L196
-            provider.RegisterVfs(file.Name, new Stream[] { file.GetStream() },
-                it => new FStreamArchive(it, Manifest.FileManifests.First(x => x.Name.Equals(it)).GetStream(), versions));
+            provider.RegisterVfs(file.FileName, [file.GetStream()],
+                it => new FStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
         }
+        else if (file.FileName.EndsWith(".ucas"))
+        {
+            return;
+        } 
+        else if (file.FileName.EndsWith(".sig"))
+        {
+            return;
+        } 
         else
         {
             using var pakStream = file.GetStream();
-            provider.RegisterVfs(file.Name, new Stream[] { pakStream });
+            provider.RegisterVfs(file.FileName, [pakStream]);
         }
 
         var ms = sw.ElapsedMilliseconds;
 
-        Log.Information("Downloaded {FileName} in {Milliseconds} ms", file.Name, ms);
+        Log.Information("Downloaded {FileName} in {Milliseconds} ms", file.FileName, ms);
     }
 
     public void LoadFileForProvider(string fileName, ref StreamedFileProvider provider)
     {
-        var file = Manifest?.FileManifests.Find(x => x.Name == fileName);
+        var file = Manifest.FileManifestList.First(x => x.FileName == fileName);
 
         if (file is null)
         {
@@ -68,9 +75,9 @@ public class ChunkDownloader
         if (Manifest is null)
             return;
 
-        foreach (var file in Manifest.FileManifests)
+        foreach (var file in Manifest.FileManifestList)
         {
-            if (!PakFinder.IsMatch(file.Name) || file.Name.Contains("optional"))
+            if (!PakFinder.IsMatch(file.FileName) || file.FileName.Contains("optional"))
                 continue;
 
             LoadFileForProvider(file, ref provider);
@@ -81,10 +88,15 @@ public class ChunkDownloader
 
     public async Task DownloadManifestAsync(ManifestInfo info)
     {
-        Manifest = new(await info.DownloadManifestDataAsync(), new()
+        var cacheDir = Directory.CreateDirectory(Path.Combine(DirectoryManager.FilesDir, "Chunks")).FullName; 
+        ManifestParseOptions manifestOptions = new ManifestParseOptions
         {
-            ChunkBaseUri = new(ChunkBaseUrl, UriKind.Absolute),
-            ChunkCacheDirectory = new(DirectoryManager.ChunksDir)
-        });
+            ChunkCacheDirectory = cacheDir,
+            ManifestCacheDirectory = cacheDir,
+            ChunkBaseUrl = "http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/",
+            Zlibng = ZlibHelper.Instance
+        };
+
+        (Manifest, Element) =  await info.DownloadAndParseAsync(manifestOptions);
     }
 }
