@@ -54,9 +54,7 @@ public static class MappingsManager
 
         foreach (var mappings in root.EnumerateArray())
         {
-            if (!mappings.TryGetProperty("meta", out var meta) ||
-                !meta.TryGetProperty("compressionMethod", out var compressionMethod) ||
-                !mappings.TryGetProperty("fileName", out var fileName) ||
+            if (!mappings.TryGetProperty("fileName", out var fileName) ||
                 !mappings.TryGetProperty("url", out var url))
             {
                 continue;
