@@ -13,6 +13,8 @@ public static class Core
 {
     public static async Task<Dataminer?> Init()
     {
+        string backupFile;
+        
         Console.Title = "Solitude";
 
         Log.Logger =
@@ -20,26 +22,7 @@ public static class Core
             .MinimumLevel.Verbose()
             .WriteTo.Console()
             .CreateLogger();
-
-        var backups = Directory.GetFiles(DirectoryManager.BackupsDir);
-
-        if (backups.Length == 0)
-        {
-            Log.Error("No backups in backups folder.");
-            Console.ReadKey();
-            return null;
-        }
-
-        var backupFile = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Choose a [45]backup file[/] to load for getting new files.")
-                .PageSize(10)
-                .HighlightStyle("45")
-                .MoreChoicesText("[grey](Move up and down to see more options)[/]")
-                .AddChoices(backups));
-
-        Log.Information("Selected backup file {BackupPath}", backupFile);
-
+        
         await OodleInit();
         await ZLibInit();
 
@@ -51,6 +34,25 @@ public static class Core
         }
 
         Log.Information("Pulling mappings from {MappingsPath}", mappings);
+
+        var backups = Directory.GetFiles(DirectoryManager.BackupsDir);
+
+        if (backups.Length == 0)
+        {
+            Log.Warning("No backups in backups folder.");
+            backupFile = await BackupManager.DownloadBackup();
+            return new Dataminer(mappings, backupFile);
+        }
+
+        backupFile = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Choose a [45]backup file[/] to load for getting new files.")
+                .PageSize(10)
+                .HighlightStyle("45")
+                .MoreChoicesText("[grey](Move up and down to see more options)[/]")
+                .AddChoices(backups));
+
+        Log.Information("Selected backup file {BackupPath}", backupFile);
 
         return new Dataminer(mappings, backupFile);
     }
