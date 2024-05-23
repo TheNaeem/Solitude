@@ -56,7 +56,6 @@ public static class MappingsManager
         {
             if (!mappings.TryGetProperty("meta", out var meta) ||
                 !meta.TryGetProperty("compressionMethod", out var compressionMethod) ||
-                (compressionMethod.GetString() != "Oodle" && compressionMethod.GetString() != "None") ||
                 !mappings.TryGetProperty("fileName", out var fileName) ||
                 !mappings.TryGetProperty("url", out var url))
             {

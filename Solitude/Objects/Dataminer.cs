@@ -239,7 +239,7 @@ public class Dataminer
             }
             else icon.DrawTexture(GetIconForCosmetic(cosmetic, offerImages), 0, 0, cosmeticIconInfo);
 
-            if (cosmetic.TryGetValue<FText>(out var displayName, "DisplayName"))
+            if (cosmetic.TryGetValue<FText>(out var displayName, "ItemName"))
             {
                 icon.DrawDisplayName(displayName.Text.ToUpper());
             }
