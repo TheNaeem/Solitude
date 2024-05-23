@@ -27,7 +27,7 @@ public static class BackupManager
         var backupPath = Path.Combine(DirectoryManager.BackupsDir, response.Data[4].FileName);
 
         var backupData = await client.DownloadDataAsync(new RestRequest(response.Data[4].DownloadUrl));
-        Log.Information($"Download {response.Data[4].FileName} in {backupPath}");
+        Log.Information($"Download {response.Data[4].FileName} at {backupPath}");
         
         if (backupData == null || backupData.Length <= 0)
         {
