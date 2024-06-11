@@ -3,6 +3,7 @@ using System.Text.Json;
 using CUE4Parse.Compression;
 using EpicManifestParser.Api;
 using RestSharp;
+using Serilog.Sinks.SystemConsole.Themes;
 using Solitude.Objects;
 using Solitude.Objects.Endpoints;
 using Spectre.Console;
@@ -20,7 +21,7 @@ public static class Core
         Log.Logger =
             new LoggerConfiguration()
             .MinimumLevel.Verbose()
-            .WriteTo.Console()
+            .WriteTo.Console(theme: AnsiConsoleTheme.Literate)
             .CreateLogger();
         
         await OodleInit();

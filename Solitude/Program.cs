@@ -4,7 +4,7 @@ using Solitude.Managers;
 using Solitude.Objects;
 using Spectre.Console;
 
-var dataminer = Core.Init().Result;
+var dataminer = Core.Init().GetAwaiter().GetResult();
 
 if (dataminer is null)
     return;
@@ -29,7 +29,6 @@ switch (choice)
         mode = ESolitudeMode.UpdateMode;
         break;
 
-    case "Get New":
     default:
         mode = ESolitudeMode.GetNew;
         break;

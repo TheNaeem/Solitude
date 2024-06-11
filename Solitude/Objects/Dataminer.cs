@@ -34,11 +34,11 @@ public class Dataminer
     public Dataminer(string mappingsPath, string backupPath)
     {
         _backup = backupPath;
-        _provider = new(string.Empty, true, new VersionContainer(EGame.GAME_UE5_5));
+        _provider = new("FortniteGame", true, new VersionContainer(EGame.GAME_UE5_5));
         _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
     }
 
-    public async Task InstallDependenciesAsync(ManifestInfo manifestInfo)
+    public async Task InstallDependenciesAsync(ManifestInfo? manifestInfo)
     {
         _chunks = new ChunkDownloader();
         
@@ -59,7 +59,7 @@ public class Dataminer
         await _provider.MountAsync();
     }
 
-    // would rather just support fmodel backups than make a seperate format
+    // would rather just support fmodel backups than make a separate format
     public async Task LoadNewEntriesAsync() // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/Commands/LoadCommand.cs#L144
     {
         var sw = Stopwatch.StartNew();
@@ -202,7 +202,7 @@ public class Dataminer
 
         var imageInfo = new SKImageInfo(512, 562);
         var cosmeticIconInfo = new SKImageInfo(512, 512);
-        var newCosmetics = _newFiles.Where(x => x.PathWithoutExtension.ToLower().StartsWith("fortnitegame/content/athena/items/cosmetics"));
+        var newCosmetics = _newFiles.Where(x => x.PathWithoutExtension.ToLower().StartsWith("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters"));
         var offerImages = _newFiles.Where(x => x.PathWithoutExtension.StartsWith("FortniteGame/Content/Catalog/NewDisplayAssets"));
 
         if (newCosmetics.Count() == 0)

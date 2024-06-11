@@ -12,8 +12,7 @@ namespace Solitude.Objects;
 
 public class ChunkDownloader 
 {
-    public FBuildPatchAppManifest? Manifest { get; set; }
-    public ManifestInfoElement? Element { get; set; }
+    private FBuildPatchAppManifest? Manifest { get; set; }
 
     // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L53
     private static readonly Regex PakFinder = new(@"^FortniteGame(/|\\)Content(/|\\)Paks(/|\\)",
@@ -59,7 +58,7 @@ public class ChunkDownloader
 
     public void LoadFileForProvider(string fileName, ref StreamedFileProvider provider)
     {
-        var file = Manifest.FileManifestList.First(x => x.FileName == fileName);
+        var file = Manifest?.FileManifestList.First(x => x.FileName == fileName);
 
         if (file is null)
         {
@@ -88,15 +87,14 @@ public class ChunkDownloader
 
     public async Task DownloadManifestAsync(ManifestInfo info)
     {
-        var cacheDir = Directory.CreateDirectory(Path.Combine(DirectoryManager.FilesDir, "Chunks")).FullName; 
         ManifestParseOptions manifestOptions = new ManifestParseOptions
         {
-            ChunkCacheDirectory = cacheDir,
-            ManifestCacheDirectory = cacheDir,
+            ChunkCacheDirectory = DirectoryManager.ChunksDir,
+            ManifestCacheDirectory = DirectoryManager.ChunksDir,
             ChunkBaseUrl = "http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/",
             Zlibng = ZlibHelper.Instance
         };
 
-        (Manifest, Element) =  await info.DownloadAndParseAsync(manifestOptions);
+        (Manifest, _) =  await info.DownloadAndParseAsync(manifestOptions).ConfigureAwait(false);
     }
 }
