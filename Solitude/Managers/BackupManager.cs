@@ -12,7 +12,7 @@ public static class BackupManager
         RestClient client = new RestClient();
         RestRequest request = new RestRequest("https://api.fmodel.app/v1/backups/FortniteGame")
         {
-            Timeout = 3000
+            Timeout = TimeSpan.FromMilliseconds(3 * 1000)
         };
         
         var response = await client.ExecuteAsync<Backup[]>(request);
