@@ -35,7 +35,7 @@ public class ChunkDownloader
 
             // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L196
             provider.RegisterVfs(file.FileName, [file.GetStream()],
-                it => new FStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
+                it => new FRandomAccessStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
         }
         else if (file.FileName.EndsWith(".ucas"))
         {
@@ -48,7 +48,7 @@ public class ChunkDownloader
         else
         {
             using var pakStream = file.GetStream();
-            provider.RegisterVfs(file.FileName, [pakStream]);
+            provider.RegisterVfs(file.FileName, [pakStream], null);
         }
 
         var ms = sw.ElapsedMilliseconds;
