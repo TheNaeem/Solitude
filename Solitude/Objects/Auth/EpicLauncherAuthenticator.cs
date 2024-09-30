@@ -18,10 +18,9 @@ public class EpicLauncherAuthenticator : IAuthenticator
         _token = token;
     }
 
-    public ValueTask Authenticate(RestClient client, RestRequest request)
+    public ValueTask Authenticate(IRestClient client, RestRequest request)
     {
         request.AddOrUpdateHeader("Authorization", $"Bearer {_token}");
-
         return new();
     }
 }

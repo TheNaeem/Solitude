@@ -35,7 +35,7 @@ public static class MappingsManager
 
         var request = new RestRequest("https://fortnitecentral.genxgames.gg/api/v1/mappings", Method.Get)
         {
-            Timeout = 3000
+            Timeout = TimeSpan.FromMilliseconds(3 * 1000)
         };
 
         var response = client.Execute(request);

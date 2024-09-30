@@ -4,16 +4,10 @@ using Newtonsoft.Json.Linq;
 
 namespace Solitude.Objects.Profile;
 
-public class ProfileBuilder
+public class ProfileBuilder(int reserve = 0)
 {
-    private List<ProfileCosmetic> _cosmetics;
-    private ProfileAthena _profile;
-
-    public ProfileBuilder(int reserve = 0)
-    {
-        _cosmetics = new(reserve);
-        _profile = new();
-    }
+    private List<ProfileCosmetic> _cosmetics = new(reserve);
+    private ProfileAthena _profile = new();
 
     public override string ToString() => Build();
 

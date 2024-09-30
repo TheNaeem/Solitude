@@ -4,16 +4,10 @@ using SkiaSharp;
 
 namespace Solitude.Objects.Graphics;
 
-public class MergedImageCreator : IDisposable
+public class MergedImageCreator(SKImageInfo imagesSize, int reserveCount = 0) : IDisposable
 {
-    public SKImageInfo ImagesSize { get; init; }
-    private List<SKImage> Images { get; init; }
-
-    public MergedImageCreator(SKImageInfo imagesSize, int reserveCount = 0)
-    {
-        ImagesSize = imagesSize;
-        Images = new(reserveCount);
-    }
+    public SKImageInfo ImagesSize { get; init; } = imagesSize;
+    private List<SKImage> Images { get; init; } = new(reserveCount);
 
     public void AddIcon(SKImage image) => Images.Add(image);
 
