@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using CommunityToolkit.HighPerformance;
 using CUE4Parse.FileProvider;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Exports;
@@ -12,7 +14,6 @@ using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.VirtualFileSystem;
 using CUE4Parse_Conversion.Textures;
 using EpicManifestParser.Api;
-using GenericReader;
 using K4os.Compression.LZ4.Streams;
 using RestSharp;
 using SkiaSharp;
@@ -30,6 +31,9 @@ public class Dataminer
     private ChunkDownloader? _chunks;
     private string _backup;
     private List<VfsEntry>? _newFiles;
+
+    private const uint _LZ4Magic = 0x184D2204u;
+    private const uint _backupMagic = 0x504B4246;
 
     public Dataminer(string mappingsPath, string backupPath)
     {
@@ -64,11 +68,10 @@ public class Dataminer
     {
         var sw = Stopwatch.StartNew();
 
-        await using FileStream fileStream = new FileStream(_backup, FileMode.Open);
+        using FileStream fileStream = new FileStream(_backup, FileMode.Open);
         await using MemoryStream memoryStream = new MemoryStream();
-        using var reader = new GenericStreamReader(fileStream);
 
-        if (reader.Read<uint>() == 0x184D2204u)
+        if (fileStream.Read<uint>() == _LZ4Magic)
         {
             fileStream.Position -= 4;
             await using LZ4DecoderStream compressionStream = LZ4Stream.Decode(fileStream);
@@ -81,17 +84,33 @@ public class Dataminer
         await using FStreamArchive archive = new FStreamArchive(fileStream.Name, memoryStream);
         _newFiles = new List<VfsEntry>();
 
-        var paths = new Dictionary<string, int>();
-        while (archive.Position < archive.Length)
+        var magic = archive.Read<uint>();
+        var paths = new HashSet<string>();
+
+        if (magic != _backupMagic)
         {
-            archive.Position += 29;
-            paths[archive.ReadString().ToLower()[1..]] = 0;
-            archive.Position += 4;
+            archive.Position -= sizeof(uint);
+            while (archive.Position < archive.Length)
+            {
+                archive.Position += 29;
+                paths.Add(archive.ReadString().ToLower()[1..]);
+                archive.Position += 4;
+            }
+        }
+        else
+        {
+            archive.Read<byte>(); /* this is EBackupVersion from FModel */
+            var count = archive.Read<int>();
+            for (var i = 0; i < count; i++)
+            {
+                archive.Position += sizeof(long) + sizeof(byte);
+                paths.Add(archive.ReadString().ToLower()[1..]);
+            }
         }
 
         foreach (var (key, value) in _provider.Files)
         {
-            if (value is not VfsEntry entry || paths.ContainsKey(key) || entry.Path.EndsWith(".uexp") ||
+            if (value is not VfsEntry entry || paths.Contains(key) || entry.Path.EndsWith(".uexp") ||
                 entry.Path.EndsWith(".ubulk") || entry.Path.EndsWith(".uptnl")) continue;
 
             _newFiles.Add(entry);
@@ -114,9 +133,9 @@ public class Dataminer
 
         var sw = Stopwatch.StartNew();
 
-        var newTextures = _newFiles.Where(x => x.PathWithoutExtension.StartsWith("FortniteGame/Content/UI/Foundation/Textures"));
-        var newBundles = newTextures.Where(x => x.NameWithoutExtension.StartsWith("T-AthenaBundle"));
-        var newOutfits = newTextures.Where(x => x.NameWithoutExtension.StartsWith("T-AthenaSoldier"));
+        var newTextures = _newFiles.Where(x => x.Path.Contains("FortniteGame/Content/UI/Foundation/Textures"));
+        var newBundles = newTextures.Where(x => x.Name.StartsWith("T-AthenaBundle") || x.Name.StartsWith("T_AthenaBundle"));
+        var newOutfits = newTextures.Where(x => x.Name.StartsWith("T-AthenaSoldier") || x.Name.StartsWith("T_AthenaSoldier"));
 
         // to multithread or not to? multithreading usually leads to nothing getting exported or the corruption of some exported images. come on cue4
 
