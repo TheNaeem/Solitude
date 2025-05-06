@@ -12,7 +12,7 @@ public static class AuthManager
     {
         Endpoint = new("https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token", RestSharp.Method.Post);
 
-        Endpoint.WithHeaders(("Authorization", "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE="));
+        Endpoint.WithHeaders(("Authorization", "basic M2Y2OWU1NmM3NjQ5NDkyYzhjYzI5ZjFhZjA4YThhMTI6YjUxZWU5Y2IxMjIzNGY1MGE2OWVmYTY3ZWY1MzgxMmU="));
         Endpoint.WithFormBody(("grant_type", "client_credentials"));
     }
 

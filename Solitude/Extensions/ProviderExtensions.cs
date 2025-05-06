@@ -7,7 +7,7 @@ public static class ProviderExtensions
 {
     public static void SaveTextureToDisk(this AbstractFileProvider provider, string texturePath, string outputDir)
     {
-        if (!provider.TryLoadObject<UTexture2D>(texturePath, out var texture))
+        if (!provider.TryLoadPackageObject<UTexture2D>(texturePath, out var texture))
             return;
 
         texture.SaveToDisk(outputDir);

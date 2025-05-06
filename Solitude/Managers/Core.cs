@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using CUE4Parse.Compression;
+using CUE4Parse_Conversion.Textures.BC;
 using EpicManifestParser.Api;
 using RestSharp;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -26,6 +27,7 @@ public static class Core
         
         await OodleInit();
         await ZLibInit();
+        await InitDetex();
 
         if (!MappingsManager.TryGetMappings(out var mappings))
         {
@@ -125,23 +127,22 @@ public static class Core
     public static async Task OodleInit()
     {
         var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_DLL_NAME);
-        if (!File.Exists(oodlePath))
-        {
-            await OodleHelper.DownloadOodleDllAsync(oodlePath);
-        }
-
+        if (!File.Exists(oodlePath)) await OodleHelper.DownloadOodleDllAsync(oodlePath);
         OodleHelper.Initialize(oodlePath);
     }
 
     public static async Task ZLibInit()
     {
         var dllPath = Path.Combine(DirectoryManager.FilesDir, ZlibHelper.DLL_NAME);
-        if (!File.Exists(dllPath))
-        {
-            await ZlibHelper.DownloadDllAsync(dllPath);
-        }
-        
+        if (!File.Exists(dllPath)) await ZlibHelper.DownloadDllAsync(dllPath);
         ZlibHelper.Initialize(dllPath);
+    }
+
+    public static async Task InitDetex()
+    {
+        var detexPath = Path.Combine(DirectoryManager.FilesDir, DetexHelper.DLL_NAME);
+        if (!File.Exists(detexPath)) await DetexHelper.LoadDllAsync(detexPath);
+        DetexHelper.Initialize(detexPath);
     }
 
     public static async Task RunAsync(ESolitudeMode mode, Dataminer dataminer)
