@@ -24,6 +24,16 @@ using Solitude.Objects.Profile;
 
 namespace Solitude.Objects;
 
+public enum EBackupVersion : byte
+{
+    BeforeVersionWasAdded = 0,
+    Initial,
+    PerfectPath,
+
+    LatestPlusOne,
+    Latest = LatestPlusOne - 1
+}
+
 public class Dataminer
 {
     public ESolitudeMode Mode { get; set; }
@@ -38,8 +48,10 @@ public class Dataminer
     public Dataminer(string mappingsPath, string backupPath)
     {
         _backup = backupPath;
-        _provider = new("FortniteGame", true, new VersionContainer(EGame.GAME_UE5_5));
-        _provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath);
+        _provider = new("FortniteGame", new VersionContainer(EGame.GAME_UE5_6), StringComparer.OrdinalIgnoreCase)
+        {
+            MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath)
+        };
     }
 
     public async Task InstallDependenciesAsync(ManifestInfo? manifestInfo)
@@ -56,6 +68,9 @@ public class Dataminer
 
         _chunks.LoadFileForProvider("FortniteGame/Content/Paks/global.utoc", ref _provider);
         _chunks.LoadFileForProvider("FortniteGame/Content/Paks/pakchunk10-WindowsClient.utoc", ref _provider); // hahahahahahahahahahahahahaha
+        _chunks.LoadFileForProvider("FortniteGame/Content/Paks/pakchunk30-WindowsClient.utoc", ref _provider);
+        _chunks.LoadFileForProvider("FortniteGame/Content/Paks/pakchunk50-WindowsClient.utoc", ref _provider);
+        _chunks.LoadFileForProvider("FortniteGame/Content/Paks/pakchunk100-WindowsClient.utoc", ref _provider);
     }
 
     public async Task LoadFilesAsync()
@@ -99,19 +114,20 @@ public class Dataminer
         }
         else
         {
-            archive.Read<byte>(); /* this is EBackupVersion from FModel */
+            var version = archive.Read<EBackupVersion>();
             var count = archive.Read<int>();
             for (var i = 0; i < count; i++)
             {
                 archive.Position += sizeof(long) + sizeof(byte);
-                paths.Add(archive.ReadString().ToLower()[1..]);
+                var fullPath = archive.ReadString();
+                if (version < EBackupVersion.PerfectPath) fullPath = fullPath[1..];
+                paths.Add(fullPath);
             }
         }
 
         foreach (var (key, value) in _provider.Files)
         {
-            if (value is not VfsEntry entry || paths.Contains(key) || entry.Path.EndsWith(".uexp") ||
-                entry.Path.EndsWith(".ubulk") || entry.Path.EndsWith(".uptnl")) continue;
+            if (value is not VfsEntry entry || paths.Contains(key) || !entry.IsUePackage) continue;
 
             _newFiles.Add(entry);
         }
@@ -133,7 +149,7 @@ public class Dataminer
 
         var sw = Stopwatch.StartNew();
 
-        var newTextures = _newFiles.Where(x => x.Path.Contains("FortniteGame/Content/UI/Foundation/Textures"));
+        var newTextures = _newFiles.Where(x => x.Path.Contains("FortniteGame/Plugins/GameFeatures"));
         var newBundles = newTextures.Where(x => x.Name.StartsWith("T-AthenaBundle") || x.Name.StartsWith("T_AthenaBundle"));
         var newOutfits = newTextures.Where(x => x.Name.StartsWith("T-AthenaSoldier") || x.Name.StartsWith("T_AthenaSoldier"));
 
@@ -187,7 +203,7 @@ public class Dataminer
             return cosmeticIcon;
         }
 
-        return _provider.LoadObject<UTexture2D>("FortniteGame/Content/Athena/Prototype/Textures/T_Placeholder_Item_Outfit");
+        return _provider.LoadPackageObject<UTexture2D>("FortniteGame/Content/Athena/Prototype/Textures/T_Placeholder_Item_Outfit");
     }
 
     private static bool TryGetIconFromFile(UObject cosmetic, [NotNullWhen(true)] out SKBitmap? outIcon)
@@ -237,7 +253,7 @@ public class Dataminer
         {
             profile.OnCosmeticAdded(cosmeticFile.NameWithoutExtension);
 
-            if (!_provider.TryLoadObject(cosmeticFile.PathWithoutExtension, out var cosmetic))
+            if (!_provider.TryLoadPackageObject(cosmeticFile.PathWithoutExtension, out var cosmetic))
                 continue;
 
             using var icon = new FortniteIconCreator(imageInfo);
@@ -297,22 +313,18 @@ public class Dataminer
             if (File.Exists(Path.Join(DirectoryManager.ExportsDir, $"{t.NameWithoutExtension}.png")))
                 continue;
 
-            if (!_provider.TryLoadObject<UTexture2D>(t.PathWithoutExtension, out var texture))
+            if (!_provider.TryLoadPackageObject<UTexture2D>(t.PathWithoutExtension, out var texture))
                 continue;
 
             texture.SaveToDisk(DirectoryManager.ExportsDir);
         }
 
-        if (_provider.TryLoadObject("FortniteGame/Content/Athena/Apollo/Maps/UI/Apollo_Terrain_Minimap.Apollo_Terrain_Minimap", out UTexture2D map))
+        if (_provider.TryLoadPackageObject("FortniteGame/Content/Athena/Apollo/Maps/UI/Apollo_Terrain_Minimap.Apollo_Terrain_Minimap", out UTexture2D map))
         {
-            using var mapImage = map.Decode()?.Encode(SKEncodedImageFormat.Webp, 80);
             map?.SaveToDisk(DirectoryManager.OutputDir);
-
             Log.Information("Saved map image");
         }
 
         // the rest? do it yourself ;)
     }
-
-
 }

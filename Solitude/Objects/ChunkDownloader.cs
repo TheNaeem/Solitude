@@ -6,6 +6,7 @@ using CUE4Parse.UE4.Readers;
 using EpicManifestParser;
 using EpicManifestParser.Api;
 using EpicManifestParser.UE;
+using EpicManifestParser.ZlibngDotNetDecompressor;
 using Solitude.Managers;
 
 namespace Solitude.Objects;
@@ -35,7 +36,7 @@ public class ChunkDownloader
 
             // https://github.com/4sval/FModel/blob/c014478abc4e455c7116504be92aa00eb00d757b/FModel/ViewModels/CUE4ParseViewModel.cs#L196
             provider.RegisterVfs(file.FileName, [file.GetStream()],
-                it => new FRandomAccessStreamArchive(it, Manifest.FileManifestList.First(x => x.FileName.Equals(it)).GetStream(), versions));
+                it => new FRandomAccessStreamArchive(it, Manifest.Files.First(x => x.FileName.Equals(it)).GetStream(), versions));
         }
         else if (file.FileName.EndsWith(".ucas"))
         {
@@ -58,7 +59,7 @@ public class ChunkDownloader
 
     public void LoadFileForProvider(string fileName, ref StreamedFileProvider provider)
     {
-        var file = Manifest?.FileManifestList.First(x => x.FileName == fileName);
+        var file = Manifest?.Files.First(x => x.FileName == fileName);
 
         if (file is null)
         {
@@ -74,7 +75,7 @@ public class ChunkDownloader
         if (Manifest is null)
             return;
 
-        foreach (var file in Manifest.FileManifestList)
+        foreach (var file in Manifest.Files)
         {
             if (!PakFinder.IsMatch(file.FileName) || file.FileName.Contains("optional"))
                 continue;
@@ -92,7 +93,8 @@ public class ChunkDownloader
             ChunkCacheDirectory = DirectoryManager.ChunksDir,
             ManifestCacheDirectory = DirectoryManager.ChunksDir,
             ChunkBaseUrl = "http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/",
-            Zlibng = ZlibHelper.Instance
+            Decompressor = ManifestZlibngDotNetDecompressor.Decompress,
+            DecompressorState = ZlibHelper.Instance,
         };
 
         (Manifest, _) =  await info.DownloadAndParseAsync(manifestOptions).ConfigureAwait(false);

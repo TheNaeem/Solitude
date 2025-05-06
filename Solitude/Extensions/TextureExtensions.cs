@@ -14,10 +14,9 @@ public static class TextureExtensions
 
             var sw = Stopwatch.StartNew();
 
-            using var decoded = texture.Decode();
-            using var encoded = decoded?.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
-            using var fs = File.Create(outputPath);
-            encoded?.AsStream().CopyTo(fs);
+            using var fileStream = File.OpenWrite(outputPath);
+            var decoded = texture.Decode();
+            fileStream.Write(decoded?.Encode(ETextureFormat.Png, out _));
 
             sw.Stop();
 

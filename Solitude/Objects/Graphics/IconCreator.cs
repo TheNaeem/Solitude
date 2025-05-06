@@ -21,9 +21,9 @@ public class IconCreator : IDisposable
 
     public void DrawTexture(UTexture2D texture, int x, int y, SKImageInfo? overrideInfo = null)
     {
-        using var decoded = texture.Decode()?.Resize(overrideInfo ?? Info, SKFilterQuality.High);
-
-        Canvas?.DrawBitmap(decoded, x, y);
+        using var decoded = texture.Decode()?.ToSkBitmap();
+        using var resized = decoded?.Resize(overrideInfo ?? Info, new SKSamplingOptions(SKCubicResampler.Mitchell));
+        Canvas?.DrawBitmap(resized, x, y);
     }
 
     public void DrawAndResizeImage(SKBitmap bmp, int x, int y, SKImageInfo resizeSize)
