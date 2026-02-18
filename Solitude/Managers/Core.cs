@@ -126,8 +126,8 @@ public static class Core
 
     public static async Task OodleInit()
     {
-        var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_DLL_NAME);
-        if (!File.Exists(oodlePath)) await OodleHelper.DownloadOodleDllAsync(oodlePath);
+        var oodlePath = Path.Combine(DirectoryManager.FilesDir, OodleHelper.OODLE_NAME_CURRENT);
+        if (!File.Exists(oodlePath)) await OodleHelper.DownloadOodleDllAsync(ref oodlePath);
         OodleHelper.Initialize(oodlePath);
     }
 

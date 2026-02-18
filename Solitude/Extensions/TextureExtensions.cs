@@ -16,7 +16,7 @@ public static class TextureExtensions
 
             using var fileStream = File.OpenWrite(outputPath);
             var decoded = texture.Decode();
-            fileStream.Write(decoded?.Encode(ETextureFormat.Png, out _));
+            fileStream.Write(decoded?.Encode(ETextureFormat.Png, false, out _));
 
             sw.Stop();
 

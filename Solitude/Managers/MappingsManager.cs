@@ -33,7 +33,7 @@ public static class MappingsManager
 
         using var client = new RestClient();
 
-        var request = new RestRequest("https://fortnitecentral.genxgames.gg/api/v1/mappings", Method.Get)
+        var request = new RestRequest("https://api.fortniteapi.com/v1/mappings", Method.Get)
         {
             Timeout = TimeSpan.FromMilliseconds(3 * 1000)
         };
@@ -42,7 +42,7 @@ public static class MappingsManager
 
         if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
         {
-            Log.Error("Request to FortniteCentral for mappings failed.");
+            Log.Error("Request to Dilly API for mappings failed.");
 
             return TryFindSavedMappings(out mappingsPath);
         }
@@ -71,7 +71,7 @@ public static class MappingsManager
 
             if (mappingsData is null || mappingsData.Length <= 0)
             {
-                Log.Error("Mappings data downloaded from FortniteCentral is null.");
+                Log.Error("Mappings data downloaded from Dilly API is null.");
 
                 return TryFindSavedMappings(out mappingsPath);
             }

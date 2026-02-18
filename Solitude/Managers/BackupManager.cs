@@ -10,7 +10,7 @@ public static class BackupManager
     public static async Task<string> DownloadBackup()
     {
         RestClient client = new RestClient();
-        RestRequest request = new RestRequest("https://api.fmodel.app/v1/backups/FortniteGame")
+        RestRequest request = new RestRequest("https://api.fortniteapi.com/v1/backups")
         {
             Timeout = TimeSpan.FromMilliseconds(3 * 1000)
         };
@@ -19,15 +19,15 @@ public static class BackupManager
 
         if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
         {
-            Log.Error("Response from the FModel Backup API failed");
+            Log.Error("Response from the Dilly Backup API failed");
             return string.Empty;
         }
 
         Debug.Assert(response.Data != null, "response.Data != null");
-        var backupPath = Path.Combine(DirectoryManager.BackupsDir, response.Data[4].FileName);
+        var backupPath = Path.Combine(DirectoryManager.BackupsDir, response.Data[0].FileName);
 
-        var backupData = await client.DownloadDataAsync(new RestRequest(response.Data[4].DownloadUrl));
-        Log.Information($"Download {response.Data[4].FileName} at {backupPath}");
+        var backupData = await client.DownloadDataAsync(new RestRequest(response.Data[0].Url));
+        Log.Information($"Download {response.Data[0].FileName} at {backupPath}");
         
         if (backupData == null || backupData.Length <= 0)
         {

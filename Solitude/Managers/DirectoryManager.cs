@@ -8,12 +8,13 @@ public static class DirectoryManager
     public static string MappingsDir = Path.Combine(FilesDir, "Mappings");
     public static string OutputDir = Path.Combine(FilesDir, "Output");
     public static string BundlesDir = Path.Combine(OutputDir, "Bundles");
+    public static string JunoBundlesDir = Path.Combine(OutputDir, "JunoBundles");
     public static string OutfitsDir = Path.Combine(OutputDir, "Outfits");
     public static string ExportsDir = Path.Combine(OutputDir, "Exports");
 
     static DirectoryManager()
     {
-        foreach (var dir in new string[] { FilesDir, ChunksDir, MappingsDir, OutputDir, BundlesDir, OutfitsDir, ExportsDir, BackupsDir })
+        foreach (var dir in new string[] { FilesDir, ChunksDir, MappingsDir, OutputDir, BundlesDir, JunoBundlesDir, OutfitsDir, ExportsDir, BackupsDir })
         {
             if (!Directory.Exists(dir))
             {

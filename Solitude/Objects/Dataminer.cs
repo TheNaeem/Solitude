@@ -48,7 +48,7 @@ public class Dataminer
     public Dataminer(string mappingsPath, string backupPath)
     {
         _backup = backupPath;
-        _provider = new("FortniteGame", new VersionContainer(EGame.GAME_UE5_6), StringComparer.OrdinalIgnoreCase)
+        _provider = new("FortniteGame", new VersionContainer(EGame.GAME_UE5_8), StringComparer.OrdinalIgnoreCase)
         {
             MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsPath)
         };
@@ -149,14 +149,25 @@ public class Dataminer
 
         var sw = Stopwatch.StartNew();
 
-        var newTextures = _newFiles.Where(x => x.Path.Contains("FortniteGame/Plugins/GameFeatures"));
+        var newTextures = _newFiles.Where(x => 
+            x.Path.StartsWith("FortniteGame/Content/UI/Foundation/Textures") || // old textures folder
+            x.Path.StartsWith("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/UI/Foundation/Textures") || // cosmetics
+            x.Path.StartsWith("FortniteGame/Plugins/GameFeatures/OfferCatalog/Content/Textures") || // offers
+            x.Path.StartsWith("FortniteGame/Plugins/GameFeatures/FM/SparksCosmetics/Content/UI/Icons") || // instruments
+            x.Path.StartsWith("FortniteGame/Plugins/GameFeatures/VehicleCosmetics/Content/UI/Icons") || // racing
+            x.Path.StartsWith("FortniteGame/Plugins/GameFeatures/CosmeticCompanions/Content/UI/Icons") || // sidekicks
+            x.NameWithoutExtension.StartsWith("T_Bean") // fall guys
+        );
         var newBundles = newTextures.Where(x => x.Name.StartsWith("T-AthenaBundle") || x.Name.StartsWith("T_AthenaBundle"));
         var newOutfits = newTextures.Where(x => x.Name.StartsWith("T-AthenaSoldier") || x.Name.StartsWith("T_AthenaSoldier"));
 
         // to multithread or not to? multithreading usually leads to nothing getting exported or the corruption of some exported images. come on cue4
 
         foreach (var bundlePath in newBundles)
-            _provider.SaveTextureToDisk(bundlePath.PathWithoutExtension, DirectoryManager.BundlesDir);
+            if (bundlePath.PathWithoutExtension.Contains("Juno"))
+                _provider.SaveTextureToDisk(bundlePath.PathWithoutExtension, DirectoryManager.JunoBundlesDir);
+            else
+                _provider.SaveTextureToDisk(bundlePath.PathWithoutExtension, DirectoryManager.BundlesDir);
 
         foreach (var outfitPath in newOutfits)
             _provider.SaveTextureToDisk(outfitPath.PathWithoutExtension, DirectoryManager.OutfitsDir);
